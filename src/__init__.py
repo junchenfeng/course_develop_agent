@@ -1,0 +1,1 @@
+"""Course development assistant package."""

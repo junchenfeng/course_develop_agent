@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "course-develop-agent"
+version = "0.1.0"
+description = "教学活动设计 → PPT 大纲（OpenRouter CLI）"
+readme = "README.md"
+license = "Proprietary"
+authors = []
+packages = [{ include = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.14"
+requests = "^2.31.0"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.scripts]
+course-assist = "src.cli:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
