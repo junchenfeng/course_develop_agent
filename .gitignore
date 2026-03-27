@@ -1,5 +1,8 @@
 .venv/
 .env
+.envrc
+.claude/settings.local.json
+# Keep project commands and skills under .claude/ tracked
 __pycache__/
 *.py[cod]
 *$py.class
