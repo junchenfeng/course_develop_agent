@@ -5,15 +5,18 @@ description = "教学活动设计 → PPT 大纲（OpenRouter CLI）"
 readme = "README.md"
 license = "Proprietary"
 authors = []
-packages = [{ include = "src" }]
+packages = [{ include = "agent_prompt_review" }]
 
 [tool.poetry.dependencies]
-python = "^3.14"
+python = ">=3.12,<3.14"
 requests = "^2.31.0"
 python-dotenv = "^1.0.0"
+openai = "^1.0.0"
 
 [tool.poetry.scripts]
-course-assist = "src.cli:main"
+apr-split-log = "agent_prompt_review.app.split_conversations:main"
+apr-diagnose = "agent_prompt_review.app.diagnose_conversations:main"
+apr-summarize = "agent_prompt_review.app.summarize_diagnosis:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
