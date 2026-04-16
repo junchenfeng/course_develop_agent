@@ -146,7 +146,7 @@ class TeachingAnalyzer:
 ## 课程信息
 - **课题**：{lesson.title}
 - **计划时长**：{lesson.duration_minutes} 分钟
-- **实际时长**：{session.duration_seconds / 60:.1f} 分钟
+- **实际时长**：{session.duration_seconds / 60:.1f if session.duration_seconds else '未知'} 分钟
 - **学生数量**：{len(lesson.students)} 人
 - **预设问题**：{len(lesson.preset_questions)} 个
 - **会话 ID**：{session.session_id}

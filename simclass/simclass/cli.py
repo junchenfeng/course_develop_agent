@@ -59,25 +59,26 @@ def validate(
 def start(
     lesson_file: Path = typer.Argument(..., help="教案 YAML 文件路径"),
     no_screen: bool = typer.Option(False, "--no-screen", help="不录制屏幕"),
+    no_audio: bool = typer.Option(False, "--no-audio", help="不录制音频（同时禁用 STT 语音识别）"),
     stt: str = typer.Option("", "--stt", help="STT 提供商 (seedasr/deepgram)"),
     llm: str = typer.Option("", "--llm", help="Agent LLM 模型 (OpenRouter model ID)"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="详细日志"),
 ) -> None:
     """启动模拟练课。"""
     _setup_logging(verbose)
-    asyncio.run(_start_session(lesson_file, no_screen, stt, llm))
+    asyncio.run(_start_session(lesson_file, no_screen, no_audio, stt, llm))
 
 
 async def _start_session(
     lesson_file: Path,
     no_screen: bool,
+    no_audio: bool,
     stt_override: str,
     llm_override: str,
 ) -> None:
     from simclass.agents.llm_client import LLMClient
     from simclass.agents.student_agent import AgentAction, StudentAgent
     from simclass.services.orchestrator import Orchestrator
-    from simclass.services.recorder import AudioRecorder, ScreenRecorder
     from simclass.ui import terminal as ui
 
     # 1. 加载配置和教案
@@ -137,22 +138,47 @@ async def _start_session(
         on_phase_change=on_phase_change,
     )
 
-    # 5. 初始化录制
-    audio_recorder = AudioRecorder(config.recorder)
-    screen_recorder = ScreenRecorder(config.recorder) if not no_screen else None
+    # 5. 初始化 STT（如果 no_audio 则跳过 STT）
+    stt_service = None if no_audio else _create_stt_service(config)
 
-    # 6. 初始化 STT
-    stt_service = _create_stt_service(config)
+    # 6. 初始化录制（仅在需要时创建）
+    audio_recorder = None
+    screen_recorder = None
+
+    if not no_audio and stt_service is not None:
+        # 有 STT 时才需要音频录制（音频数据同时送 STT 和录制）
+        from simclass.services.recorder import AudioRecorder
+
+        audio_recorder = AudioRecorder(config.recorder)
+    elif not no_audio:
+        # 没有 STT 但用户没有明确 --no-audio：尝试录制音频（可能失败则优雅降级）
+        try:
+            from simclass.services.recorder import AudioRecorder
+
+            audio_recorder = AudioRecorder(config.recorder)
+        except Exception:
+            console.print("[yellow]⚠ 音频录制初始化失败，已跳过[/]")
+
+    if not no_screen:
+        try:
+            from simclass.services.recorder import ScreenRecorder
+
+            screen_recorder = ScreenRecorder(config.recorder)
+        except Exception:
+            console.print("[yellow]⚠ 屏幕录制初始化失败，已跳过[/]")
 
     # 7. 启动
     loop = asyncio.get_event_loop()
-    audio_queue = audio_recorder.subscribe()
-    audio_recorder.start(loop)
+    audio_queue = None
 
-    if screen_recorder:
+    if audio_recorder is not None:
+        audio_queue = audio_recorder.subscribe()
+        audio_recorder.start(loop)
+
+    if screen_recorder is not None:
         screen_recorder.start(session_dir)
 
-    if stt_service:
+    if stt_service is not None:
         await stt_service.connect()
 
     ui.print_session_start(session_id)
@@ -166,7 +192,7 @@ async def _start_session(
     signal.signal(signal.SIGINT, _signal_handler)
 
     try:
-        if stt_service:
+        if stt_service is not None and audio_queue is not None:
             # 启动两个并行任务：发送音频 + 处理 STT 结果
             await asyncio.gather(
                 _feed_audio_to_stt(audio_queue, stt_service, stop_event),
@@ -180,10 +206,11 @@ async def _start_session(
         pass
     finally:
         # 9. 清理
-        audio_recorder.stop()
-        if stt_service:
+        if audio_recorder is not None:
+            audio_recorder.stop()
+        if stt_service is not None:
             await stt_service.close()
-        if screen_recorder:
+        if screen_recorder is not None:
             screen_recorder.stop()
 
         session.end()
@@ -195,8 +222,9 @@ async def _start_session(
 
         # 10. 保存
         session.save(session_dir)
-        audio_recorder.save_wav(session_dir / "audio.wav")
-        if screen_recorder:
+        if audio_recorder is not None:
+            audio_recorder.save_wav(session_dir / "audio.wav")
+        if screen_recorder is not None:
             screen_recorder.encode_video(session_dir / "screen.mp4")
 
         ui.print_session_end(

@@ -43,18 +43,30 @@ class AudioRecorder:
                 self._loop.call_soon_threadsafe(q.put_nowait, chunk)
 
     def start(self, loop: asyncio.AbstractEventLoop) -> None:
-        import sounddevice as sd
+        try:
+            import sounddevice as sd
+        except OSError as e:
+            logger.warning("无法初始化音频设备: %s — 音频录制已禁用。", e)
+            self._running = False
+            return
 
         self._loop = loop
         self._running = True
-        self._stream = sd.RawInputStream(
-            samplerate=self.config.audio_sample_rate,
-            channels=self.config.audio_channels,
-            dtype="int16",
-            blocksize=int(self.config.audio_sample_rate * 0.2),  # 200ms chunks
-            callback=self._audio_callback,
-        )
-        self._stream.start()
+        try:
+            self._stream = sd.RawInputStream(
+                samplerate=self.config.audio_sample_rate,
+                channels=self.config.audio_channels,
+                dtype="int16",
+                blocksize=int(self.config.audio_sample_rate * 0.2),  # 200ms chunks
+                callback=self._audio_callback,
+            )
+            self._stream.start()
+        except Exception as e:
+            logger.warning("无法打开麦克风: %s — 音频录制已禁用。", e)
+            self._running = False
+            self._stream = None
+            return
+
         logger.info(
             "Audio recording started (rate=%d, channels=%d)",
             self.config.audio_sample_rate,
@@ -71,8 +83,11 @@ class AudioRecorder:
             q.put_nowait(b"")  # sentinel
         logger.info("Audio recording stopped, %d chunks captured", len(self._frames))
 
-    def save_wav(self, path: Path) -> Path:
+    def save_wav(self, path: Path) -> Path | None:
         """将录制的音频保存为 WAV 文件。"""
+        if not self._frames:
+            logger.info("No audio frames captured, skipping WAV save")
+            return None
         path.parent.mkdir(parents=True, exist_ok=True)
         with wave.open(str(path), "wb") as wf:
             wf.setnchannels(self.config.audio_channels)
