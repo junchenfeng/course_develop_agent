@@ -1,0 +1,94 @@
+# SimClass 示例教案 — Python 变量与数据类型
+
+lesson:
+  title: "Python 变量与数据类型"
+  duration_minutes: 20
+
+  phases:
+    - name: "开场复习"
+      duration_minutes: 3
+      description: "复习上节课 print() 函数的用法"
+      key_points:
+        - "print() 的基本语法"
+        - "字符串拼接"
+
+    - name: "新课导入"
+      duration_minutes: 5
+      description: "引入变量的概念，解释为什么需要变量"
+      key_points:
+        - "变量是存储数据的容器"
+        - "变量命名规则"
+        - "赋值运算符 ="
+
+    - name: "代码演示"
+      duration_minutes: 7
+      description: "在 IDE 中演示变量的定义和使用"
+      key_points:
+        - "整数和浮点数变量"
+        - "字符串变量"
+        - "type() 函数查看类型"
+        - "变量的重新赋值"
+
+    - name: "互动练习"
+      duration_minutes: 3
+      description: "让学生预测代码输出结果"
+      key_points:
+        - "变量覆盖"
+        - "类型转换"
+
+    - name: "总结"
+      duration_minutes: 2
+      description: "回顾本节课重点，预告下节课内容"
+      key_points:
+        - "变量的作用"
+        - "四种基本数据类型"
+
+  preset_questions:
+    - question: "老师，变量和常量有什么区别？"
+      expected_phase: "新课导入"
+      reference_answer: "变量的值可以改变，常量的值不能改变。Python 中没有严格的常量语法，通常用全大写命名表示常量。"
+      difficulty: "medium"
+      asked_by: "小明"
+
+    - question: "为什么 x = 1 之后再写 x = 2，x 就变成 2 了？之前的 1 去哪了？"
+      expected_phase: "代码演示"
+      reference_answer: "变量名就像一个标签，x = 1 是把标签贴在 1 上，x = 2 是把标签撕下来贴到 2 上。原来的 1 如果没有其他变量指向它，Python 会自动回收这块内存。"
+      difficulty: "medium"
+      asked_by: "小明"
+
+    - question: "老师，我没太听懂变量是什么，能再解释一下吗？"
+      expected_phase: "新课导入"
+      reference_answer: "可以把变量想象成一个盒子，盒子上写着名字，里面可以放东西。比如 age = 18，就是一个叫 age 的盒子里放了 18 这个数字。"
+      difficulty: "easy"
+      asked_by: "小刚"
+
+    - question: "type() 函数除了查看类型，还能做什么？"
+      expected_phase: "代码演示"
+      reference_answer: "type() 主要就是用来查看数据类型。在调试时很有用，可以帮你确认一个变量到底是什么类型。进阶用法中还可以用 type() 动态创建类，但这是高级内容。"
+      difficulty: "hard"
+      asked_by: "小明"
+
+students:
+  - name: "小明"
+    persona: "积极主动型"
+    traits: |
+      经常举手提问，理解力强，喜欢追问底层原理。
+      会在教师讲完一个知识点后主动提出相关问题。
+      偶尔会提出超纲问题。
+    knowledge_level: "中等偏上"
+
+  - name: "小红"
+    persona: "认真沉默型"
+    traits: |
+      很少主动发言，但被点名时能给出正确答案。
+      偶尔会在聊天中打出"嗯嗯"、"明白了"等简短回应。
+      如果教师讲得不清楚会小声说"没太听懂"。
+    knowledge_level: "中等"
+
+  - name: "小刚"
+    persona: "容易走神型"
+    traits: |
+      注意力不集中，会在教师已经讲过一个话题后又问相同的问题。
+      有时候会问跟课程无关的问题。
+      但如果教师耐心解释，他能够理解。
+    knowledge_level: "中等偏下"
