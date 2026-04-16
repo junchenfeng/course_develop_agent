@@ -1,0 +1,69 @@
+[project]
+name = "simclass"
+version = "0.1.0"
+description = "AI 模拟学生备课练习系统 — 新手教师通过语音与 AI 学生互动，课后获得教学反馈"
+readme = "README.md"
+license = "LicenseRef-Proprietary"
+requires-python = ">=3.11"
+dependencies = [
+    # CLI & Terminal UI
+    "typer>=0.15",
+    "rich>=13.9",
+
+    # Data & Config
+    "pydantic>=2.9",
+    "pyyaml>=6.0",
+
+    # LLM (OpenRouter)
+    "openai>=1.55",          # openai SDK 兼容 OpenRouter
+    "httpx>=0.28",
+
+    # STT
+    "websockets>=14.0",      # SeedASR / Deepgram WebSocket
+
+    # Audio
+    "sounddevice>=0.5",      # 麦克风采集
+    "numpy>=1.26",           # 音频 buffer 处理
+    "soundfile>=0.12",       # WAV 写入
+
+    # Screen Recording
+    "mss>=9.0",              # 屏幕截图
+    "pillow>=10.4",          # 图像处理
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[project.scripts]
+simclass = "simclass.cli:app_entry"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["simclass"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["B008"]  # typer uses function calls in argument defaults by design
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+warn_return_any = true
+warn_unused_configs = true
